@@ -93,21 +93,22 @@ router.post("/", (req, res) => {
 			})
 		})
 })
-//Needs to be corrected, 500 Internal Server Error
+//Needs to be corrected, cannot produce 404 error
 router.post( "/:id/comments", ( req, res ) => {
   if ( !req.body.text ) {
     return res.status( 400 ).json( {
       message: "Please provide text for the comment."
     } )
-  } else if ( !req.params.id ) {
-    return res.status( 404 ).json( {
-      message: "The post with the specified ID does not exist."
-    } )
-  }
-
-  db.insertComment( req.params.id, req.body )
-    .then( ( post ) => {
-      res.status( 201 ).json( post )
+  } else {
+    db.insertComment( req.body )
+    .then( ( comment ) => {
+      if ( comment ) {
+        res.status( 201 ).json( comment )
+      } else {
+        res.status( 404 ).json( {
+          message: "The post with the specified ID does not exist."
+        } )
+      }
     } )
     .catch( ( err ) => {
       console.log( err )
@@ -115,8 +116,11 @@ router.post( "/:id/comments", ( req, res ) => {
         message: "There was an error while saving the comment to the database"
       } )
     } )
+  }
+
+
 } )
-//Needs error check
+//Needs error check, cannot produce 500 error
 router.put("/:id", (req, res) => {
 	if (!req.body.title || !req.body.contents ) {
 		return res.status(400).json({
