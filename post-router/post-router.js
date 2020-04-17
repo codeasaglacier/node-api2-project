@@ -93,34 +93,39 @@ router.post("/", (req, res) => {
 			})
 		})
 })
-//Needs to be corrected, cannot produce 404 error
-router.post( "/:id/comments", ( req, res ) => {
+
+router.post( "/:id/comments", ( req, res ) => { 
   if ( !req.body.text ) {
     return res.status( 400 ).json( {
       message: "Please provide text for the comment."
     } )
-  } else {
-    db.insertComment( req.body )
-    .then( ( comment ) => {
-      if ( comment ) {
-        res.status( 201 ).json( comment )
-      } else {
-        res.status( 404 ).json( {
-          message: "The post with the specified ID does not exist."
-        } )
-      }
-    } )
-    .catch( ( err ) => {
-      console.log( err )
-      res.status( 500 ).json( {
-        message: "There was an error while saving the comment to the database"
+  } 
+
+    db.findById( req.params.id ) 
+      .then( ( post ) => {
+        console.log( post )
+        if ( post.length > 0 ) {
+          db.insertComment( req.body )
+            .then( ( comment ) => {
+                res.status( 201 ).json( comment )
+            } )
+            .catch( ( err ) => {
+              console.log( err )
+              res.status( 500 ).json( {
+                message: "There was an error while saving the comment to the database"
+              } )
+            } )
+        } else {
+          res.status( 404 ).json( {
+            message: "The post with the specified ID does not exist."
+          } )
+        }
       } )
-    } )
-  }
+ 
 
 
 } )
-//Needs error check, cannot produce 500 error
+
 router.put("/:id", (req, res) => {
 	if (!req.body.title || !req.body.contents ) {
 		return res.status(400).json({
@@ -145,9 +150,9 @@ router.put("/:id", (req, res) => {
 			})
 		})
 })
-//Needs error check
+//Promise.reject() to force 500
 router.delete("/:id", (req, res) => {
-	db.remove(req.params.id)
+  db.remove(req.params.id)
 		.then((count) => {
 			if (count > 0) {
 				res.status(200).json({
